@@ -2,8 +2,13 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user
 from app.models import User
 from app import db
+from app import login_manager
 
 auth_bp = Blueprint('auth', __name__)
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -39,7 +44,6 @@ def login():
     email = data.get('email')
     password = data.get('password')
     
-
     if not email or not password:
         return jsonify({'error': 'Email and password are required'}), 400
 
@@ -49,7 +53,7 @@ def login():
         return jsonify({'error': 'Invalid email or password'}), 401
 
     login_user(user)
-    return jsonify({'message': 'Logged in successfully'}), 200
+    return jsonify({'user': user.to_dict(), 'message': 'Logged in successfully'}), 200
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
