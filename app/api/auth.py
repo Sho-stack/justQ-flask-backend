@@ -20,6 +20,11 @@ def register():
     if user:
         return jsonify({'error': 'Email already exists'}), 400
 
+    user = User.query.filter_by(username=username).first()
+
+    if user:
+        return jsonify({'error': 'Username already exists'}), 400
+
     new_user = User(email=email, username=username)
     new_user.set_password(password)
 
