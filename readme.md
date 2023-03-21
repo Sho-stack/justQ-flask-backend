@@ -42,15 +42,21 @@ On Unix/MacOS:
 
 >python manage.py db_init
 
->python manage.py db_migrate
-
->python manage.py db_upgrade
+>python manage.py create
 
 ### Usage
 
 Run the application:
 
 >flask run
+
+>you can test /register route by sending below JSON as raw POST body to http://localhost:5000/register using Postman or similar tool:
+
+{
+    "email": "john.doe@example.com",
+    "username": "John Doe",
+    "password": "password123"
+}
 
 You can now access the application at [http://localhost:5000/](http://localhost:5000/).
 
