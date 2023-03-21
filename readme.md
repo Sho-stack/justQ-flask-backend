@@ -1,62 +1,80 @@
 # Project Name
 
-[Short project description]
+Flask back-end for Q&A application
 
-## Getting Started
+# Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-### Prerequisites
+# Prerequisites
 
 * Python 3.x
 * virtualenv (optional)
 
-### Installation
+# Installation
 
-1. Clone the repository:
+## 1. Clone the repository: 
 
->git clone https://github.com/Sho-stack/justQ-flask-backend-.git
+```
+git clone https://github.com/Sho-stack/justQ-flask-backend-.git
+```
 
->cd project-name
+```
+cd project-name
+```
 
-2. Create and activate a virtual environment (optional):
+## 2. Create and activate a virtual environment (optional): 
 
-On Windows:
+### On Windows:
 
-> python -m venv venv
+```
+python -m venv venv
+```
 
-> venv\Scripts\activate
+```
+venv\Scripts\activate
+```
 
-On Unix/MacOS:
+### On Unix/MacOS:
 
->python3 -m venv venv
+```
+python3 -m venv venv
+```
 
->source venv/bin/activate
+```
+source venv/bin/activate
+```
 
+## 3. Install the dependencies:
 
-3. Install the dependencies:
+```
+pip install -r requirements.txt
+```
 
->pip install -r requirements.txt
+## 4. Set up the database:
 
-4. Set up the database:
+```
+python manage.py db_init
+```
 
->python manage.py db_init
+```
+python manage.py db_create
+```
 
->python manage.py create
+# Usage
 
-### Usage
+## Run the application:
+```
+flask run
+```
+### you can test @/register route by sending below JSON as raw POST body to http://localhost:5000/register using Postman or similar tool:
 
-Run the application:
-
->flask run
-
->you can test /register route by sending below JSON as raw POST body to http://localhost:5000/register using Postman or similar tool:
-
+```
 {
     "email": "john.doe@example.com",
     "username": "John Doe",
     "password": "password123"
 }
-
-You can now access the application at [http://localhost:5000/](http://localhost:5000/).
+```
+### You can now also access the application at [http://localhost:5000/](http://localhost:5000/).
 
