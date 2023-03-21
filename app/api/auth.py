@@ -1,5 +1,5 @@
-from flask import Blueprint, request, jsonify
-from flask_login import login_user, logout_user
+from flask import Blueprint, request, jsonify, make_response
+from flask_login import login_user, logout_user, current_user
 from app.models import User
 from app import db
 from app import login_manager
@@ -52,13 +52,29 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid email or password'}), 401
 
-    login_user(user)
-    return jsonify({'user': user.to_dict(), 'message': 'Logged in successfully'}), 200
+    login_user(user, remember='True')
+    response = make_response(jsonify({'user': user.to_dict(), 'message': 'Logged in successfully'}), 200)
+    # Set the session cookie here
+    response.set_cookie("session", "session_value") # Replace "session_value" with the actual session value
+    return response
+
+@auth_bp.route('/check_login', methods=['GET'])
+def check_login():
+    print(current_user)
+    if current_user.is_authenticated:
+        user = User.query.filter_by(id=current_user.id).first()
+
+        return jsonify({'user': current_user.to_dict()})
+    else:
+        return jsonify({'user': None})
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
-    logout_user()
-    return jsonify({'message': 'Logged out successfully'}), 200
+    if current_user.is_authenticated:
+        logout_user()
+        return jsonify({'message': 'Logged out successfully'}), 200
+    else:
+        return jsonify({'error': 'You are not logged in'}), 401
 
 @auth_bp.route('/reset_password', methods=['POST'])
 def reset_password():
