@@ -1,8 +1,8 @@
-from flask import Blueprint, request, jsonify, make_response
-from flask_login import login_user, logout_user, current_user
+from flask import Blueprint, request, jsonify, make_response, url_for, current_app
 from app.models import User
-from app import db
-from app import login_manager
+from app import db, mail, login_manager
+from flask_login import login_user, logout_user, current_user
+from flask_mail import Message
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -35,6 +35,8 @@ def register():
 
     db.session.add(new_user)
     db.session.commit()
+
+    send_welcome_email(new_user)
 
     return jsonify({'message': 'User registered successfully'}), 201
 
@@ -77,6 +79,75 @@ def logout():
         return jsonify({'error': 'You are not logged in'}), 401
 
 @auth_bp.route('/reset_password', methods=['POST'])
-def reset_password():
-    # Implement password reset logic here
-    pass
+def reset_password_request():
+    
+    data = request.get_json()
+    email = data.get('email')
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    print('user: ', user)
+    if user:
+        send_password_reset_email(user)
+
+    return jsonify({'message': 'If an account with this email exists, a password reset link has been sent.'}), 200
+
+@auth_bp.route('/reset_token/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    user = User.verify_reset_token(token)
+
+    if not user:
+        return jsonify({'error': 'Invalid or expired token'}), 400
+
+    if request.method == 'POST':
+        data = request.get_json()
+        password = data.get('password')
+
+        if not password:
+            return jsonify({'error': 'Password is required'}), 400
+
+        user.set_password(password)
+        db.session.commit()
+
+        return jsonify({'message': 'Password has been updated successfully'}), 200
+
+    return jsonify({'message': 'Please provide the new password in a POST request'}), 200
+
+
+
+def send_welcome_email(user):
+    msg = Message("Welcome to our JustQ",
+                  sender="justq.main@gmail.com",
+                  recipients=[user.email])
+    msg.body = f"""Hello {user.username},
+
+Thank you for signing up for our Q&A platform! We're excited to have you on board. Be sure to explore the site and engage with the community.
+
+If you have any questions, feel free to reach out to our support team.
+
+Best regards,
+The JustQ Team
+"""
+    mail.send(msg)
+
+def send_password_reset_email(user):
+    reset_token = user.get_reset_token()
+
+    # Change the next line to include the base URL of your front-end consumer
+    reset_url = f"{current_app.config['FRONT_END_BASE_URL']}/reset-password/{reset_token}"
+
+    msg = Message("Password Reset Request",
+                  sender="noreply@yourdomain.com",
+                  recipients=[user.email])
+    msg.html = f"""Hello {user.username},
+
+To reset your password, please follow the link below:</br>
+<a href="{reset_url}">Click here!</a></br>
+
+If you did not request a password reset, please ignore this email. Your password will remain unchanged.
+
+Best regards,
+The Q&A Platform Team
+"""
+    mail.send(msg)
