@@ -8,7 +8,7 @@ __pycache__/
 .coverage 
 instance/ 
 *.log 
-.env 
+.env
 .vscode/ 
 .idea/ 
 .mypy_cache/
