@@ -24,5 +24,5 @@ class Config:
     MAIL_USE_SSL = True
 
     # URL for front-end consumer
-    FRONT_END_BASE_URL = 'https://sho-stack.github.io/justQ-react-frontend/'
+    FRONT_END_BASE_URL = 'https://justq-react.herokuapp.com/'
 
