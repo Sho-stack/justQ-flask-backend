@@ -16,7 +16,13 @@ def create_app():
 
     app = Flask(__name__)
     app.config.from_object(Config)
-    CORS(app, supports_credentials=True)
+    # set up CORS with allowed origins
+    origins = [
+        'https://justq-react.herokuapp.com/',  # replace with your React app's domain
+        'https://mydomain.com'    # add additional domains as necessary
+    ]
+    CORS(app, supports_credentials=True, origins=origins)
+
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
