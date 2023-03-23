@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_mail import Mail, Message
 from config import Config
+import subprocess
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -25,5 +26,10 @@ def create_app():
         from app.api import questions, auth
         app.register_blueprint(questions.questions_bp)
         app.register_blueprint(auth.auth_bp)
+
+    @app.route('/update_from_github', methods=['POST'])
+    def update():
+        subprocess.call(["/home/michalszostak/update_repo.sh"])
+        return "Repository updated", 200
 
     return app
