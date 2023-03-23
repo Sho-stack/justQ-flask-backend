@@ -6,6 +6,7 @@ from flask_cors import CORS
 from flask_mail import Mail, Message
 from config import Config
 import subprocess
+from flask_sslify import SSLify
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -29,6 +30,7 @@ def create_app():
         CORS(app, resources={
             r"/*": {"origins": ["https://justq-react.herokuapp.com", "https://github.com/Sho-stack/justQ-flask-backend"]}
         })
+        sslify = SSLify(app)
         from app.api import questions, auth
         app.register_blueprint(questions.questions_bp)
         app.register_blueprint(auth.auth_bp)
