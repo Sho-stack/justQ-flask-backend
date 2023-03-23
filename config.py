@@ -2,7 +2,8 @@ import os
 
 class Config:
     SECRET_KEY = 'some-secret-key'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://michalszostak:burzuj123@michalszostak.mysql.pythonanywhere-services.com:3306/michalszostak$justq'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     REMEMBER_COOKIE_DURATION = 3600
 
