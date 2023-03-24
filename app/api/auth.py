@@ -3,8 +3,12 @@ from app.models import User
 from app import db, mail, login_manager
 from flask_login import login_user, logout_user, current_user
 from flask_mail import Message
-
+from itsdangerous import URLSafeTimedSerializer
 auth_bp = Blueprint('auth', __name__)
+
+def generate_session_id(user_id):
+    serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+    return serializer.dumps(user_id)
 
 @login_manager.user_loader
 def load_user(id):
@@ -57,8 +61,10 @@ def login():
     login_user(user, remember='True')
     response = make_response(jsonify({'user': user.to_dict(), 'message': 'Logged in successfully'}), 200)
     # Set the session cookie here
-    response.set_cookie("session", "session_value") # Replace "session_value" with the actual session value
+    session_id = generate_session_id(user.id)
+    response.set_cookie("session", session_id, samesite="Lax", secure=True)
     return response
+
 
 @auth_bp.route('/check_login', methods=['GET'])
 def check_login():
