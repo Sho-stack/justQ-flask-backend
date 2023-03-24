@@ -41,14 +41,15 @@ class User(UserMixin, db.Model):
         except Exception as e:
             return None
         return User.query.get(user_id)
-    
+
+
+
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    answers = db.relationship('Answer', backref='question', lazy='dynamic')
-    upvotes = db.Column(db.Integer, default=0)
+
 
 class Answer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,4 +57,4 @@ class Answer(db.Model):
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
-    upvotes = db.Column(db.Integer, default=0)
+    
