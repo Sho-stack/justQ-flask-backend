@@ -59,7 +59,7 @@ def login():
         return jsonify({'error': 'Invalid email or password'}), 401
 
     login_user(user, remember='True')
-    response = make_response(jsonify({'user': user.to_dict(), 'message': 'Logged in successfully'}), 200)
+    response = make_response(jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200)
     # Set the session cookie here
     session_id = generate_session_id(user.id)
     response.set_cookie("session", session_id)
