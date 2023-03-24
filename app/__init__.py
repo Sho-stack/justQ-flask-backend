@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_cors import CORS
-from flask_mail import Mail, Message
+from flask_mail import Mail
 from config import Config
 import subprocess
 from flask_sslify import SSLify
@@ -14,26 +14,20 @@ migrate = Migrate()
 mail = Mail()
 
 def create_app():
-
     app = Flask(__name__)
     app.config.from_object(Config)
-    # set up CORS with allowed origins
 
+    CORS(app, supports_credentials=True)
 
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
+    sslify = SSLify(app)
 
-
-    with app.app_context():
-        CORS(app, resources={
-            r"/*": {"origins": ["https://justq-react.herokuapp.com", "https://github.com/Sho-stack/justQ-flask-backend"]}
-        })
-        sslify = SSLify(app)
-        from app.api import questions, auth
-        app.register_blueprint(questions.questions_bp)
-        app.register_blueprint(auth.auth_bp)
+    from app.api import questions, auth
+    app.register_blueprint(questions.questions_bp)
+    app.register_blueprint(auth.auth_bp)
 
     @app.route('/update_from_github', methods=['POST'])
     def update():
