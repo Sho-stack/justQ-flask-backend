@@ -2,6 +2,16 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+print("MYSQL_USER:", MYSQL_USER)
+print("MYSQL_PASSWORD:", MYSQL_PASSWORD)
+print("MYSQL_DATABASE:", MYSQL_DATABASE)
+print("MYSQL_HOST:", MYSQL_HOST)
+print("MYSQL_PORT:", MYSQL_PORT)
+print("SECRET_KEY:", SECRET_KEY)
+print("MAIL_USERNAME:", MAIL_USERNAME)
+print("MAIL_PASSWORD:", MAIL_PASSWORD)
+print("SQLALCHEMY_DATABASE_URI:", SQLALCHEMY_DATABASE_URI)
+
 class Config:
     MYSQL_USER = os.environ.get("MYSQL_USER")
     MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
