@@ -44,17 +44,40 @@ class User(UserMixin, db.Model):
 
 
 
+class Vote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=True)
+    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id'), nullable=True)
+    vote_type = db.Column(db.String(10), nullable=False)  # 'upvote' or 'downvote'
+    timestamp = db.Column(db.DateTime, index=True)
+
+    user = db.relationship('User', backref=db.backref('votes', lazy='dynamic'))
+
+
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+    votes = db.relationship('Vote', backref='question', lazy='dynamic')
 
+    def get_votes(self):
+        upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
+        downvotes = Vote.query.filter_by(question_id=self.id, vote_type='downvote').count()
+        return upvotes - downvotes
+        
 class Answer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
+
+    votes = db.relationship('Vote', backref='answer', lazy='dynamic')
     
+    def get_votes(self):
+        upvotes = Vote.query.filter_by(answer_id=self.id, vote_type='upvote').count()
+        downvotes = Vote.query.filter_by(answer_id=self.id, vote_type='downvote').count()
+        return upvotes - downvotes
