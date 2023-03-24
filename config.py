@@ -1,12 +1,9 @@
 import os
 from dotenv import load_dotenv
-load_dotenv()
-
-
 
 class Config:
     
-    
+    load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
     MYSQL_USER = os.environ.get("MYSQL_USER")
     MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
     MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE")
