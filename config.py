@@ -6,6 +6,7 @@ class Config:
     load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
     MYSQL_USER = os.environ.get("MYSQL_USER")
     MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
+    os.environ["MYSQL_DATABASE"] = "michalszostak$justq"
     MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE")
     MYSQL_HOST = os.environ.get("MYSQL_HOST")
     SECRET_KEY = os.environ.get("SECRET_KEY")
