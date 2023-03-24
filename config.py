@@ -1,8 +1,8 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class Config:
-
-
     MYSQL_USER = os.environ.get("MYSQL_USER")
     MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
     MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE")
@@ -25,4 +25,3 @@ class Config:
 
     # URL for front-end consumer
     FRONT_END_BASE_URL = 'https://justq-react.herokuapp.com/'
-
