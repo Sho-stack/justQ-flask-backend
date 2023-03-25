@@ -21,7 +21,7 @@ def get_all_questions():
             'net_votes': question.get_votes()
         }
         output.append(question_data)
-
+    print(output)
     return jsonify({'questions': output})
 
 @questions_bp.route('/questions', methods=['POST'])
