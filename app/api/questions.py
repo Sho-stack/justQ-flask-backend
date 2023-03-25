@@ -45,3 +45,31 @@ def add_question():
         'author': new_question.author.username,
         'net_votes': new_question.get_votes()
     }}), 201
+
+@questions_bp.route('/answers', methods=['POST'])
+@login_required
+def add_answer():
+    data = request.get_json()
+    content = data.get('content')
+    question_id = data.get('question_id')
+
+    if not content or not question_id:
+        return jsonify({'error': 'Content and question ID are required'}), 400
+
+    question = Question.query.get(question_id)
+    if not question:
+        return jsonify({'error': 'Invalid question ID'}), 400
+
+    new_answer = Answer(content=content, author=current_user, timestamp=datetime.utcnow(), question_id=question_id)
+    db.session.add(new_answer)
+    db.session.commit()
+
+    return jsonify({'message': 'Answer added successfully', 'answer': {
+        'id': new_answer.id,
+        'content': new_answer.content,
+        'timestamp': new_answer.timestamp,
+        'user_id': new_answer.user_id,
+        'author': new_answer.author.username,
+        'question_id': new_answer.question_id,
+        'net_votes': new_answer.get_votes()
+    }}), 201

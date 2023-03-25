@@ -16,6 +16,7 @@ def load_user(id):
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
+    
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
@@ -25,12 +26,10 @@ def register():
         return jsonify({'error': 'Email and password are required'}), 400
 
     user = User.query.filter_by(email=email).first()
-
     if user:
         return jsonify({'error': 'Email already exists'}), 400
 
     user = User.query.filter_by(username=username).first()
-
     if user:
         return jsonify({'error': 'Username already exists'}), 400
 
@@ -71,7 +70,6 @@ def check_login():
     print(current_user)
     if current_user.is_authenticated:
         user = User.query.filter_by(id=current_user.id).first()
-
         return jsonify({'user': current_user.to_dict()})
     else:
         return jsonify({'user': None})

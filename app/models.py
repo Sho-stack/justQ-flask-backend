@@ -75,6 +75,7 @@ class Answer(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
 
+    author = db.relationship('User', backref='replies')
     votes = db.relationship('Vote', backref='answer', lazy='dynamic')
     
     def get_votes(self):
