@@ -9,8 +9,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    questions = db.relationship('Question', backref='author', lazy='dynamic')
-    answers = db.relationship('Answer', backref='author', lazy='dynamic')
+    questions = db.relationship('Question', backref='question_author', lazy='dynamic')
+    answers = db.relationship('Answer', backref='answer_author', lazy='dynamic')
     
     def __repr__(self):
         return f'<User {self.username}>'
@@ -60,6 +60,9 @@ class Question(db.Model):
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    votes = db.relationship('Vote', backref='question', lazy='dynamic')
+    author = db.relationship('User', backref=db.backref('questions', lazy='dynamic'))
+    # ...
 
     votes = db.relationship('Vote', backref='question', lazy='dynamic')
 
@@ -74,6 +77,8 @@ class Answer(db.Model):
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
+    author = db.relationship('User', backref=db.backref('answers', lazy='dynamic'))
+    votes = db.relationship('Vote', backref='answer', lazy='dynamic')
 
     author = db.relationship('User', backref='replies')
     votes = db.relationship('Vote', backref='answer', lazy='dynamic')
