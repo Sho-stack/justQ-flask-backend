@@ -13,14 +13,6 @@ class Config:
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
 
-    print("MYSQL_USER:", MYSQL_USER)
-    print("MYSQL_PASSWORD:", MYSQL_PASSWORD)
-    print("MYSQL_DATABASE:", MYSQL_DATABASE)
-    print("MYSQL_HOST:", MYSQL_HOST)
-    print("SECRET_KEY:", SECRET_KEY)
-    print("MAIL_USERNAME:", MAIL_USERNAME)
-    print("MAIL_PASSWORD:", MAIL_PASSWORD)
-    
     # Set SQLALCHEMY_DATABASE_URI to use the MySQL configuration
     SQLALCHEMY_DATABASE_URI = f'mysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}'
 
