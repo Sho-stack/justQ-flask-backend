@@ -52,7 +52,7 @@ def login():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
-    
+
     if not email or not password:
         return jsonify({'error': 'Email and password are required'}), 400
 
@@ -61,46 +61,25 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid email or password'}), 401
 
-    login_user(user, remember='True')
-    session_id = generate_session_id(user.id)
-    response = make_response(jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200)
-    response.set_cookie('session', session_id, secure=True, samesite='None')
-    return response
+    login_user(user, remember=True)  # Use Flask-Login's default session management
+    return jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200
+
 
 
 @auth_bp.route('/check_login', methods=['GET'])
 def check_login():
-    session_id = request.cookies.get('session')
-    if session_id:
-        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
-        try:
-            user_id = serializer.loads(session_id, max_age=3600)
-            user = User.query.get(user_id)
-            if user and user.is_authenticated:
-                return jsonify({'user': user.to_dict()})
-        except BadSignature:
-            pass
-
+    if current_user.is_authenticated:
+        return jsonify({'user': current_user.to_dict()})
     return jsonify({'user': None})
+
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
-    session_id = request.cookies.get('session')
-    if session_id:
-        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
-        try:
-            user_id = serializer.loads(session_id, max_age=3600)
-            user = User.query.get(user_id)
-            print('User from session cookie:', user)
-            if user and user.is_authenticated:
-                logout_user()
-                response = make_response(jsonify({'message': 'Logged out successfully'}), 200)
-                response.set_cookie('session', '', expires=0)
-                return response
-        except BadSignature:
-            pass
-
+    if current_user.is_authenticated:
+        logout_user()
+        return jsonify({'message': 'Logged out successfully'}), 200
     return jsonify({'error': 'You are not logged in'}), 401
+
 
 
 @auth_bp.route('/reset_password', methods=['POST'])
