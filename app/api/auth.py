@@ -81,13 +81,21 @@ def check_login():
     return jsonify({'user': None})
 
 @auth_bp.route('/logout', methods=['POST'])
-
 def logout():
-    if current_user.is_authenticated:
-        logout_user()
-        return jsonify({'message': 'Logged out successfully'}), 200
-    else:
-        return jsonify({'error': 'You are not logged in'}), 401
+    session_id = request.cookies.get('session')
+    if session_id:
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        try:
+            user_id = serializer.loads(session_id, max_age=3600)
+            user = User.query.get(user_id)
+            if user and user.is_authenticated:
+                logout_user()
+                return jsonify({'message': 'Logged out successfully'}), 200
+        except BadSignature:
+            pass
+
+    return jsonify({'error': 'You are not logged in'}), 401
+
 
 @auth_bp.route('/reset_password', methods=['POST'])
 def reset_password_request():
