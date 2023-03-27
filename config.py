@@ -12,6 +12,12 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
+    
+    # Secure cookie settings
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+
 
     # Set SQLALCHEMY_DATABASE_URI to use the MySQL configuration
     SQLALCHEMY_DATABASE_URI = f'mysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}'
@@ -24,5 +30,5 @@ class Config:
     MAIL_PORT = 465
     MAIL_USE_SSL = True
 
-    # URL for front-end consumer
+    # URL for front-end consumer (used in password reset email)
     FRONT_END_BASE_URL = 'https://justq-react.herokuapp.com/'
