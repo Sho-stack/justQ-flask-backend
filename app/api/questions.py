@@ -3,9 +3,6 @@ from app.models import Question, Answer, User, Vote
 from app import db
 from flask_login import login_required, current_user
 from datetime import datetime
-import langid
-from translate import Translator
-import json
 
 questions_bp = Blueprint('questions', __name__)
 
@@ -36,30 +33,18 @@ def add_question():
     if not content:
         return jsonify({'error': 'Content is required'}), 400
 
-    # Translate the content
-    translations = translate(content).get('translations')
-
-    # Create a new question object
-    new_question = Question(
-        content=content,
-        content_translations=json.dumps(translations),
-        author=current_user,
-        timestamp=datetime.utcnow()
-    )
-
+    new_question = Question(content=content, author=current_user, timestamp=datetime.utcnow())
     db.session.add(new_question)
     db.session.commit()
 
     return jsonify({'message': 'Question added successfully', 'question': {
         'id': new_question.id,
         'content': new_question.content,
-        'content_translations': new_question.content_translations,
         'timestamp': new_question.timestamp,
         'user_id': new_question.user_id,
         'author': new_question.author.username,
         'net_votes': new_question.get_votes()
     }}), 201
-
 
 @questions_bp.route('/questions/<int:question_id>/answers', methods=['GET'])
 def get_answers(question_id):
@@ -112,22 +97,3 @@ def add_answer():
         'question_id': new_answer.question_id,
         'net_votes': new_answer.get_votes()
     }}), 201
-
-def translate(text):
-
-    # Identify the language of the input text
-    lang = langid.classify(text)[0]
-
-    # Translate the input text to English
-    translator = Translator(from_lang=lang, to_lang='en')
-    en_text = translator.translate(text)
-
-    # Translate the English text to 10 popular languages
-    translations = {}
-    target_langs = ['es', 'zh-CN', 'hi', 'ar', 'pt', 'pl', 'bn', 'ru', 'ja', 'pa', 'id']
-    for lang in target_langs:
-        translator = Translator(from_lang='en', to_lang=lang)
-        translations[lang] = translator.translate(en_text)
-
-    response_data = {'translations': translations}
-    return response_data
