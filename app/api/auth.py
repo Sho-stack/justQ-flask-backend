@@ -70,6 +70,7 @@ def check_login():
     print(current_user)
     if current_user.is_authenticated:
         user = User.query.filter_by(id=current_user.id).first()
+        print(current_user.to_dict())
         return jsonify({'user': current_user.to_dict()})
     else:
         return jsonify({'user': None})
