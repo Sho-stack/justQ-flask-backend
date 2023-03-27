@@ -3,7 +3,7 @@ from app.models import User
 from app import db, mail, login_manager
 from flask_login import login_user, logout_user, current_user
 from flask_mail import Message
-from itsdangerous import URLSafeTimedSerializer
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -59,8 +59,6 @@ def login():
         return jsonify({'error': 'Invalid email or password'}), 401
 
     login_user(user, remember='True')
-    response = make_response(jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200)
-    # Set the session cookie here
     session_id = generate_session_id(user.id)
     response = make_response(jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200)
     response.headers['Set-Cookie'] = f'session={session_id}; Secure; SameSite=None'
@@ -69,13 +67,18 @@ def login():
 
 @auth_bp.route('/check_login', methods=['GET'])
 def check_login():
-    print('Received cookies:', request.cookies)
-    if current_user.is_authenticated:
-        user = User.query.filter_by(id=current_user.id).first()
-        print('current_user.to_dict(): ', current_user.to_dict())
-        return jsonify({'user': current_user.to_dict()})
-    else:
-        return jsonify({'user': None})
+    session_id = request.cookies.get('session')
+    if session_id:
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        try:
+            user_id = serializer.loads(session_id, max_age=3600)
+            user = User.get(user_id)
+            if user:
+                return jsonify({'user': user.to_dict()})
+        except BadSignature:
+            pass
+
+    return jsonify({'user': None})
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
