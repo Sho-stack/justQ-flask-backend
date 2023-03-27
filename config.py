@@ -13,11 +13,6 @@ class Config:
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
     
-    # Secure cookie settings
-    SESSION_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-
 
     # Set SQLALCHEMY_DATABASE_URI to use the MySQL configuration
     SQLALCHEMY_DATABASE_URI = f'mysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}'
