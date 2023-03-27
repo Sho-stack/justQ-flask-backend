@@ -61,7 +61,10 @@ def login():
     response = make_response(jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200)
     # Set the session cookie here
     session_id = generate_session_id(user.id)
+    print('session_id:', session_id)
+
     response.set_cookie("session", session_id)
+    
     return response
 
 
