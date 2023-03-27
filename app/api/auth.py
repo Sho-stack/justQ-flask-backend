@@ -63,7 +63,7 @@ def login():
     session_id = generate_session_id(user.id)
     print('session_id:', session_id)
 
-    response.set_cookie("session", session_id)
+    response.set_cookie("session", session_id, secure=True, httpOnly=True)
     
     return response
 
