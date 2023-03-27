@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, make_response, url_for, current_app, secure_cookie
+from flask import Blueprint, request, jsonify, make_response, url_for, current_app
 from app.models import User
 from app import db, mail, login_manager
 from flask_login import login_user, logout_user, current_user
