@@ -73,7 +73,7 @@ def check_login():
         try:
             user_id = serializer.loads(session_id, max_age=3600)
             user = User.query.get(user_id)
-            if user:
+            if user and user.is_authenticated:
                 return jsonify({'user': user.to_dict()})
         except BadSignature:
             pass
