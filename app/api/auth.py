@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, make_response, url_for, current_app
+from flask import Blueprint, request, jsonify, make_response, url_for, current_app, secure_cookie
 from app.models import User
 from app import db, mail, login_manager
 from flask_login import login_user, logout_user, current_user
@@ -61,7 +61,7 @@ def login():
     login_user(user, remember='True')
     session_id = generate_session_id(user.id)
     response = make_response(jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200)
-    response.headers['Set-Cookie'] = f'session={session_id}; Secure; SameSite=None'
+    response.set_cookie('session', session_id, secure=True, samesite='None')
     return response
 
 
