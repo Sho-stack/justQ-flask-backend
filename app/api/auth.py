@@ -4,8 +4,6 @@ from app import db, mail, login_manager
 from flask_login import login_user, logout_user, current_user
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer
-from werkzeug.wrappers import Response
-
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -62,9 +60,10 @@ def login():
 
     login_user(user, remember='True')
     response = make_response(jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200)
+    # Set the session cookie here
     session_id = generate_session_id(user.id)
-    response = Response(response=response)
-    response.set_cookie("session", session_id, secure=True, httponly=True)
+    response = make_response(jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200)
+    response.headers['Set-Cookie'] = f'session={session_id}; Secure; HttpOnly; SameSite=None'
     return response
 
 
