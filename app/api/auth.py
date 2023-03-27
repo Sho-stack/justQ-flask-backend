@@ -13,7 +13,10 @@ def generate_session_id(user_id):
 
 @login_manager.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    print("Loading user with ID:", id)
+    user = User.query.get(int(id))
+    print("Loaded user:", user)
+    return user
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
