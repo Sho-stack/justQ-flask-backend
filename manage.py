@@ -13,16 +13,16 @@ def init_migrate_upgrade():
         
         if not os.path.exists("migrations"):
             print("Initializing the migration repository...")
-            init(directory="migrations")
+            migrate_instance.init(directory="migrations")
             print("Migration repository initialized.")
         else:
             print("Migration repository already exists.")
         
         print("Creating a new migration script...")
-        migrate(directory="migrations")
+        migrate_instance.migrate(directory="migrations")
 
         print("Applying the migration script...")
-        upgrade(directory="migrations")
+        migrate_instance.upgrade(directory="migrations")
         print("Success.")
 
 
