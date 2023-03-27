@@ -89,116 +89,24 @@ def add_answer():
     db.session.commit()
 
     return jsonify({'message': 'Question added successfully', 'question': {
-        'id': new_question.id,
-        'content': new_question.content,
-        'content_en': new_question.content_en,
-        'content_pl': new_question.content_pl,
-        'content_es': new_question.content_es,
-        'content_zh': new_question.content_zh,
-        'content_hi': new_question.content_hi,
-        'content_ar': new_question.content_ar,
-        'content_pt': new_question.content_pt,
-        'content_bn': new_question.content_bn,
-        'content_ru': new_question.content_ru,
-        'content_ja': new_question.content_ja,
-        'content_pa': new_question.content_pa,
-        'content_id': new_question.content_id,
-        'timestamp': new_question.timestamp,
-        'user_id': new_question.user_id,
-        'author': new_question.author.username,
-        'net_votes': new_question.get_votes()
+        'id': new_answer.id,
+        'content': new_answer.content,
+        'content_en': new_answer.content_en,
+        'content_pl': new_answer.content_pl,
+        'content_es': new_answer.content_es,
+        'content_zh': new_answer.content_zh,
+        'content_hi': new_answer.content_hi,
+        'content_ar': new_answer.content_ar,
+        'content_pt': new_answer.content_pt,
+        'content_bn': new_answer.content_bn,
+        'content_ru': new_answer.content_ru,
+        'content_ja': new_answer.content_ja,
+        'content_pa': new_answer.content_pa,
+        'content_id': new_answer.content_id,
+        'timestamp': new_answer.timestamp,
+        'user_id': new_answer.user_id,
+        'author': new_answer.author.username,
+        'net_votes': new_answer.get_votes()
     }}), 201
 
-@questions_bp.route('/questions/<int:question_id>/answers', methods=['GET'])
-def get_answers(question_id):
-    question = Question.query.get(question_id)
 
-    if not question:
-        return jsonify({'error': 'Invalid question ID'}), 400
-
-    answers = question.answers.order_by(Answer.timestamp).all()
-    output = []
-
-    for answer in answers:
-        answer_data = {
-            'id': answer.id,
-            'content': answer.content,
-            'content_en': answer.content_en,
-            'content_pl': answer.content_pl,
-            'content_es': answer.content_es,
-            'content_zh': answer.content_zh,
-            'content_hi': answer.content_hi,
-            'content_ar': answer.content_ar,
-            'content_pt': answer.content_pt,
-            'content_bn': answer.content_bn,
-            'content_ru': answer.content_ru,
-            'content_ja': answer.content_ja,
-            'content_pa': answer.content_pa,
-            'content_id': answer.content_id,
-            'timestamp': answer.timestamp,
-            'user_id': answer.user_id,
-            'author': answer.author.username,
-            'question_id': answer.question_id,
-            'net_votes': answer.get_votes()
-        }
-        output.append(answer_data)
-
-    return jsonify({'answers': output})
-
-@questions_bp.route('/answers', methods=['POST'])
-@login_required
-def add_answer():
-    data = request.get_json()
-    content = data.get('content')
-    question_id = data.get('question_id')
-
-    if not content or not question_id:
-        return jsonify({'error': 'Content and question ID are required'}), 400
-
-    question = Question.query.get(question_id)
-    if not question:
-        return jsonify({'error': 'Invalid question ID'}), 400
-
-    translations = translate(content)
-    new_answer = Answer(
-        content=content,
-        content_en=translations['translations']['en'],
-        content_pl=translations['translations']['pl'],
-        content_es=translations['translations']['es'],
-        content_zh=translations['translations']['zh-CN'],
-        content_hi=translations['translations']['hi'],
-        content_ar=translations['translations']['ar'],
-        content_pt=translations['translations']['pt'],
-        content_bn=translations['translations']['bn'],
-        content_ru=translations['translations']['ru'],
-        content_ja=translations['translations']['ja'],
-        content_pa=translations['translations']['pa'],
-        content_id=translations['translations']['id'],
-        author=current_user,
-        timestamp=datetime.utcnow(),
-        question_id=question_id
-    )
-    db.session.add(new_answer)
-    db.session.commit()
-
-    return jsonify({'message': 'Answer added successfully', 'answer': {
-            'id': new_answer.id,
-            'content': new_answer.content,
-            'content_en': new_answer.content_en,
-            'content_pl': new_answer.content_pl,
-            'content_es': new_answer.content_es,
-            'content_zh': new_answer.content_zh,
-            'content_hi': new_answer.content_hi,
-            'content_ar': new_answer.content_ar,
-            'content_pt': new_answer.content_pt,
-            'content_bn': new_answer.content_bn,
-            'content_ru': new_answer.content_ru,
-            'content_ja': new_answer.content_ja,
-            'content_pa': new_answer.content_pa,
-            'content_id': new_answer.content_id,
-            'timestamp': new_answer.timestamp,
-            'user_id': new_answer.user_id,
-            'author': new_answer.author.username,
-            'question_id': new_answer.question_id,
-            'net_votes': new_answer.get_votes()
-        }}), 201
