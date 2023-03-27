@@ -2,8 +2,10 @@ import os
 from app import create_app, db
 from flask_migrate import Migrate, init, migrate, upgrade
 import sys
+from config import Config
 
 app = create_app()
+app.config.from_object(Config)
 
 def init_migrate_upgrade():
     with app.app_context():
