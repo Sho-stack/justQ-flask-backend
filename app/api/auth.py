@@ -81,6 +81,7 @@ def check_login():
     return jsonify({'user': None})
 
 @auth_bp.route('/logout', methods=['POST'])
+
 def logout():
     if current_user.is_authenticated:
         logout_user()
@@ -90,7 +91,7 @@ def logout():
 
 @auth_bp.route('/reset_password', methods=['POST'])
 def reset_password_request():
-    
+    print(f'Current user: {current_user}')
     data = request.get_json()
     email = data.get('email')
     if not email:
