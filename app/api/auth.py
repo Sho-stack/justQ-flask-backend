@@ -52,6 +52,7 @@ def login():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
+    remember = data.get('remember', False) 
 
     if not email or not password:
         return jsonify({'error': 'Email and password are required'}), 400
@@ -61,7 +62,7 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid email or password'}), 401
 
-    login_user(user, remember=True)  # Use Flask-Login's default session management
+    login_user(user, remember=remember)
     return jsonify({'user': user.to_dict(), 'message': "You're logged in"}), 200
 
 
@@ -77,6 +78,7 @@ def check_login():
 def logout():
     if current_user.is_authenticated:
         logout_user()
+        response.set_cookie('remember_token', '', expires=0, secure=True, httponly=True, samesite='None')
         return jsonify({'message': 'Logged out successfully'}), 200
     return jsonify({'error': 'You are not logged in'}), 401
 
