@@ -78,8 +78,9 @@ def check_login():
 def logout():
     if current_user.is_authenticated:
         logout_user()
+        response = make_response(jsonify({'message': 'User has been logged out'}), 200)
         response.set_cookie('remember_token', '', expires=0, secure=True, httponly=True, samesite='None')
-        return jsonify({'message': 'Logged out successfully'}), 200
+        return response
     return jsonify({'error': 'You are not logged in'}), 401
 
 
