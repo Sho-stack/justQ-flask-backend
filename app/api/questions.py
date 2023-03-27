@@ -46,6 +46,30 @@ def add_question():
         'net_votes': new_question.get_votes()
     }}), 201
 
+@questions_bp.route('/questions/<int:question_id>/answers', methods=['GET'])
+def get_answers(question_id):
+    question = Question.query.get(question_id)
+
+    if not question:
+        return jsonify({'error': 'Invalid question ID'}), 400
+
+    answers = question.answers.order_by(Answer.timestamp).all()
+    output = []
+
+    for answer in answers:
+        answer_data = {
+            'id': answer.id,
+            'content': answer.content,
+            'timestamp': answer.timestamp,
+            'user_id': answer.user_id,
+            'author': answer.author.username,
+            'question_id': answer.question_id,
+            'net_votes': answer.get_votes()
+        }
+        output.append(answer_data)
+
+    return jsonify({'answers': output})
+
 @questions_bp.route('/answers', methods=['POST'])
 @login_required
 def add_answer():
