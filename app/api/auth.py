@@ -85,15 +85,22 @@ def check_login():
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
-    print(request.cookies)  # Add this line to print received cookies
-    print('current user: ', current_user)
-    if current_user.is_authenticated:
-        logout_user()
-        response = jsonify({'message': 'Logged out successfully'}), 200
-        response.set_cookie('session', '', expires=0)
-        return response
-    else:
-        return jsonify({'error': 'You are not logged in'}), 401
+    session_id = request.cookies.get('session')
+    if session_id:
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        try:
+            user_id = serializer.loads(session_id, max_age=3600)
+            user = User.query.get(user_id)
+            print('User from session cookie:', user)
+            if user and user.is_authenticated:
+                logout_user()
+                response = make_response(jsonify({'message': 'Logged out successfully'}), 200)
+                response.set_cookie('session', '', expires=0)
+                return response
+        except BadSignature:
+            pass
+
+    return jsonify({'error': 'You are not logged in'}), 401
 
 
 @auth_bp.route('/reset_password', methods=['POST'])
