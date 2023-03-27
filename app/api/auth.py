@@ -67,10 +67,10 @@ def login():
 
 @auth_bp.route('/check_login', methods=['GET'])
 def check_login():
-    print(current_user)
+    print('check_login, current_user:', current_user)
     if current_user.is_authenticated:
         user = User.query.filter_by(id=current_user.id).first()
-        print(current_user.to_dict())
+        print('current_user.to_dict(): ', current_user.to_dict())
         return jsonify({'user': current_user.to_dict()})
     else:
         return jsonify({'user': None})
