@@ -82,6 +82,7 @@ def check_login():
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
+    print(request.cookies)  # Add this line to print received cookies
     print('current user: ', current_user)
     if current_user.is_authenticated:
         logout_user()
