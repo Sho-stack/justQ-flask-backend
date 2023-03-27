@@ -69,7 +69,7 @@ def login():
 
 @auth_bp.route('/check_login', methods=['GET'])
 def check_login():
-    print('check_login, current_user:', current_user)
+    print('Received cookies:', request.cookies)
     if current_user.is_authenticated:
         user = User.query.filter_by(id=current_user.id).first()
         print('current_user.to_dict(): ', current_user.to_dict())
