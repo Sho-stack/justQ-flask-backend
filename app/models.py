@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
+import json
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -55,6 +56,7 @@ class Vote(db.Model):
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
+    content_translations = db.Column(db.JSON, nullable=True)  # store translations in JSON format
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     answers = db.relationship('Answer', backref='question', lazy='dynamic')
@@ -63,10 +65,11 @@ class Question(db.Model):
         upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
         downvotes = Vote.query.filter_by(question_id=self.id, vote_type='downvote').count()
         return upvotes - downvotes
-        
+
 class Answer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
+    content_translations = db.Column(db.JSON, nullable=True)  # store translations in JSON format
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
