@@ -72,7 +72,7 @@ def check_login():
         serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
         try:
             user_id = serializer.loads(session_id, max_age=3600)
-            user = User.get(user_id)
+            user = User.query.get(user_id)
             if user:
                 return jsonify({'user': user.to_dict()})
         except BadSignature:
