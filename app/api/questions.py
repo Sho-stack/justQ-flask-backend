@@ -95,33 +95,6 @@ def get_all_questions():
 
     return jsonify({'questions': output})
 
-
-@questions_bp.route('/questions', methods=['POST'])
-@login_required
-async def add_question():
-    data = request.get_json()
-    content = data.get('content')
-
-    if not content:
-        return jsonify({'error': 'Content is required'}), 400
-
-    new_question = Question(content=content, author=current_user, timestamp=datetime.utcnow())
-    db.session.add(new_question)
-    db.session.commit()
-
-    # Start a new event loop to call the asynchronous translation function
-    await save_question_translations(new_question.id, content)
-
-    return jsonify({'message': 'Question added successfully', 'question': {
-        'id': new_question.id,
-        'content': new_question.content,
-        'timestamp': new_question.timestamp,
-        'user_id': new_question.user_id,
-        'author': new_question.author.username,
-        'net_votes': new_question.get_votes()
-    }}), 201
-
-
 @questions_bp.route('/questions/<int:question_id>/answers', methods=['GET'])
 def get_answers(question_id):
     question = Question.query.get(question_id)
@@ -157,6 +130,33 @@ def get_answers(question_id):
 
     return jsonify({'answers': output})
 
+@questions_bp.route('/questions', methods=['POST'])
+@login_required
+async def add_question():
+    data = request.get_json()
+    content = data.get('content')
+
+    if not content:
+        return jsonify({'error': 'Content is required'}), 400
+
+    new_question = Question(content=content, author=current_user, timestamp=datetime.utcnow())
+    db.session.add(new_question)
+    db.session.commit()
+
+    # Start a new event loop to call the asynchronous translation function
+    await save_question_translations(new_question.id, content)
+
+    return jsonify({'message': 'Question added successfully', 'question': {
+        'id': new_question.id,
+        'content': new_question.content,
+        'timestamp': new_question.timestamp,
+        'user_id': new_question.user_id,
+        'author': new_question.author.username,
+        'net_votes': new_question.get_votes()
+    }}), 201
+
+
+
 @questions_bp.route('/answers', methods=['POST'])
 @login_required
 async def add_answer():
@@ -176,7 +176,7 @@ async def add_answer():
     db.session.commit()
 
     # Start a new event loop to call the asynchronous translation function
-    save_answer_translations(new_answer.id, content)
+    await save_answer_translations(new_answer.id, content)
 
     return jsonify({'message': 'Answer added successfully', 'answer': {
         'id': new_answer.id,
