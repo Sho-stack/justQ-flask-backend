@@ -72,6 +72,12 @@ def get_all_questions():
     output = []
 
     for question in questions:
+        user_vote = 0
+        if current_user.is_authenticated:
+            vote = Vote.query.filter_by(user_id=current_user.id, question_id=question.id).first()
+            if vote:
+                user_vote = 1 if vote.vote_type == 'upvote' else -1
+
         question_data = {
             'id': question.id,
             'content': question.content,
@@ -89,7 +95,9 @@ def get_all_questions():
             'timestamp': question.timestamp,
             'user_id': question.user_id,
             'author': question.author.username,
-            'net_votes': question.get_votes()
+            'net_votes': question.get_votes(),
+            'user_vote': user_vote,
+
         }
         output.append(question_data)
 
@@ -199,3 +207,55 @@ async def add_answer():
     }}), 201
 
 
+@questions_bp.route('/vote', methods=['PUT'])
+@login_required
+def update_vote():
+    data = request.get_json()
+    vote_value = data.get('vote')
+    question_id = data.get('question_id')
+    answer_id = data.get('answer_id')
+
+    if vote_value not in [-1, 0, 1]:
+        return jsonify({'error': 'Invalid vote value'}), 400
+
+    if question_id is None and answer_id is None:
+        return jsonify({'error': 'Either question_id or answer_id must be provided'}), 400
+
+    if question_id is not None and answer_id is not None:
+        return jsonify({'error': 'Only one of question_id or answer_id can be provided'}), 400
+
+    if question_id:
+        obj = Question.query.get(question_id)
+        if not obj:
+            return jsonify({'error': 'Invalid question ID'}), 400
+
+        vote = Vote.query.filter_by(user_id=current_user.id, question_id=question_id).first()
+
+    if answer_id:
+        obj = Answer.query.get(answer_id)
+        if not obj:
+            return jsonify({'error': 'Invalid answer ID'}), 400
+
+        vote = Vote.query.filter_by(user_id=current_user.id, answer_id=answer_id).first()
+
+    if vote_value == 0:
+        if vote:
+            db.session.delete(vote)
+            db.session.commit()
+            return jsonify({'message': 'Vote removed successfully'}), 200
+        else:
+            return jsonify({'message': 'No vote to remove'}), 204
+
+    if not vote:
+        if question_id:
+            vote = Vote(user_id=current_user.id, question_id=question_id, timestamp=datetime.utcnow())
+        else:
+            vote = Vote(user_id=current_user.id, answer_id=answer_id, timestamp=datetime.utcnow())
+
+        db.session.add(vote)
+
+    vote.vote_type = 'upvote' if vote_value == 1 else 'downvote'
+    vote.timestamp = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({'message': 'Vote updated successfully'}), 200

@@ -100,3 +100,4 @@ class Answer(db.Model):
         upvotes = Vote.query.filter_by(answer_id=self.id, vote_type='upvote').count()
         downvotes = Vote.query.filter_by(answer_id=self.id, vote_type='downvote').count()
         return upvotes - downvotes
+
