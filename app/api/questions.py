@@ -110,7 +110,7 @@ async def add_question():
     db.session.commit()
 
     # Start a new event loop to call the asynchronous translation function
-    await save_question_translations(new_question.id, content))
+    await save_question_translations(new_question.id, content)
 
     return jsonify({'message': 'Question added successfully', 'question': {
         'id': new_question.id,
