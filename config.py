@@ -4,14 +4,14 @@ from dotenv import load_dotenv
 class Config:
     
     load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+    
     MYSQL_USER = os.environ.get("MYSQL_USER")
     MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
-    MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE")
+    MYSQL_DATABASE="michalszostak$justq"
     MYSQL_HOST = os.environ.get("MYSQL_HOST")
     SECRET_KEY = os.environ.get("SECRET_KEY")
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
-    
     
     
     print(MYSQL_USER)
