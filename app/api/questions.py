@@ -5,9 +5,6 @@ from flask_login import login_required, current_user
 from datetime import datetime
 from translate import Translator
 import langid
-import asyncio
-from aiohttp import ClientSession
-
 
 questions_bp = Blueprint('questions', __name__)
 
@@ -101,7 +98,7 @@ def get_all_questions():
 
 @questions_bp.route('/questions', methods=['POST'])
 @login_required
-def add_question():
+async def add_question():
     data = request.get_json()
     content = data.get('content')
 
@@ -113,9 +110,7 @@ def add_question():
     db.session.commit()
 
     # Start a new event loop to call the asynchronous translation function
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(save_question_translations(new_question.id, content))
+    await save_question_translations(new_question.id, content))
 
     return jsonify({'message': 'Question added successfully', 'question': {
         'id': new_question.id,
@@ -181,9 +176,7 @@ async def add_answer():
     db.session.commit()
 
     # Start a new event loop to call the asynchronous translation function
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(save_answer_translations(new_answer.id, content))
+    save_answer_translations(new_answer.id, content)
 
     return jsonify({'message': 'Answer added successfully', 'answer': {
         'id': new_answer.id,
