@@ -34,7 +34,7 @@ async def translate_async(content):
 
     return translations
 
-async def save_translations(question_id, content):
+async def save_question_translations(question_id, content):
     translations = await translate_async(content)
     question = Question.query.get(question_id)
     
@@ -49,6 +49,24 @@ async def save_translations(question_id, content):
     question.content_ru = translations['ru']
     question.content_ja = translations['ja']
     question.content_pa = translations['pa']
+    db.session.commit()
+
+async def save_answer_translations(answer_id, content):
+    translations = await translate_async(content)
+    answer = Answer.query.get(answer_id)
+
+    answer.content_en = translations['en']
+    answer.content_pl = translations['pl']
+    answer.content_es = translations['es']
+    answer.content_zh = translations['zh-CN']
+    answer.content_hi = translations['hi']
+    answer.content_ar = translations['ar']
+    answer.content_pt = translations['pt']
+    answer.content_bn = translations['bn']
+    answer.content_ru = translations['ru']
+    answer.content_ja = translations['ja']
+    answer.content_pa = translations['pa']
+
     db.session.commit()
 
 @questions_bp.route('/questions', methods=['GET'])
@@ -97,7 +115,7 @@ def add_question():
     # Start a new event loop to call the asynchronous translation function
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(save_translations(new_question.id, content))
+    loop.run_until_complete(save_question_translations(new_question.id, content))
 
     return jsonify({'message': 'Question added successfully', 'question': {
         'id': new_question.id,
@@ -123,6 +141,17 @@ def get_answers(question_id):
         answer_data = {
             'id': answer.id,
             'content': answer.content,
+            'content_en': answer.content_en or '',
+            'content_pl': answer.content_pl or '',
+            'content_es': answer.content_es or '',
+            'content_zh': answer.content_zh or '',
+            'content_hi': answer.content_hi or '',
+            'content_ar': answer.content_ar or '',
+            'content_pt': answer.content_pt or '',
+            'content_bn': answer.content_bn or '',
+            'content_ru': answer.content_ru or '',
+            'content_ja': answer.content_ja or '',
+            'content_pa': answer.content_pa or '',
             'timestamp': answer.timestamp,
             'user_id': answer.user_id,
             'author': answer.author.username,
@@ -135,7 +164,7 @@ def get_answers(question_id):
 
 @questions_bp.route('/answers', methods=['POST'])
 @login_required
-def add_answer():
+async def add_answer():
     data = request.get_json()
     content = data.get('content')
     question_id = data.get('question_id')
@@ -151,7 +180,12 @@ def add_answer():
     db.session.add(new_answer)
     db.session.commit()
 
-    return jsonify({'message': 'Question added successfully', 'question': {
+    # Start a new event loop to call the asynchronous translation function
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(save_answer_translations(new_answer.id, content))
+
+    return jsonify({'message': 'Answer added successfully', 'answer': {
         'id': new_answer.id,
         'content': new_answer.content,
         'content_en': new_answer.content_en,
@@ -165,7 +199,6 @@ def add_answer():
         'content_ru': new_answer.content_ru,
         'content_ja': new_answer.content_ja,
         'content_pa': new_answer.content_pa,
-        'content_id': new_answer.content_id,
         'timestamp': new_answer.timestamp,
         'user_id': new_answer.user_id,
         'author': new_answer.author.username,
