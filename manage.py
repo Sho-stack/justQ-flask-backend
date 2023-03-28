@@ -1,16 +1,31 @@
 import os
 from app import create_app, db
-from flask_migrate import Migrate
-from flask_script import Manager
-from config import Config
+from flask_migrate import Migrate, init, migrate, upgrade
+import sys
 
 app = create_app()
-app.config.from_object(Config)
 
-manager = Manager(app)
-migrate_instance = Migrate(app, db)
-manager.add_command('db', MigrateCommand)
+def init_migrate_upgrade():
+    with app.app_context():
+        migrate_instance = Migrate(app, db)
+        
+        if not os.path.exists("migrations"):
+            print("Initializing the migration repository...")
+            init(directory="migrations")
+            print("Migration repository initialized.")
+        else:
+            print("Migration repository already exists.")
+        
+        print("Creating a new migration script...")
+        migrate(directory="migrations")
+
+        print("Applying the migration script...")
+        upgrade(directory="migrations")
+        print("Success.")
 
 
 if __name__ == "__main__":
-    manager.run()
+    if len(sys.argv) > 1 and sys.argv[1] == "init_migrate_upgrade":
+        init_migrate_upgrade()
+    else:
+        print("Usage: python manage.py init_migrate_upgrade")
