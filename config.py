@@ -7,7 +7,7 @@ class Config:
     MYSQL_USER = os.environ.get("MYSQL_USER")
     MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
     MYSQL_DATABASE = os.environ("MYSQL_DATABASE")
-    MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE")
+    MYSQL_DATABASE = os.environ("MYSQL_DATABASE")
     MYSQL_HOST = os.environ.get("MYSQL_HOST")
     SECRET_KEY = os.environ.get("SECRET_KEY")
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
