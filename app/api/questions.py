@@ -3,8 +3,53 @@ from app.models import Question, Answer, User, Vote
 from app import db
 from flask_login import login_required, current_user
 from datetime import datetime
+from translate import Translator
+import langid
+import asyncio
+from aiohttp import ClientSession
+
 
 questions_bp = Blueprint('questions', __name__)
+
+async def translate_async(content):
+    # Get the source language and target languages
+    source_lang = langid.classify(content)[0]
+    target_languages = ['zh-CN', 'es', 'hi', 'ar', 'pt', 'bn', 'ru', 'ja', 'pa', 'pl']
+    translations = {}
+
+    # First, translate the content to English if it's not already in English
+    if source_lang != 'en':
+        translator_to_english = Translator(from_lang=source_lang, to_lang='en')
+        english_translation = translator_to_english.translate(content)
+    else:
+        english_translation = content
+
+    translations['en'] = english_translation
+
+    # Generate translations for each target language using the English translation as the source
+    for target_lang in target_languages:
+        translator = Translator(from_lang='en', to_lang=target_lang)
+        translation = translator.translate(english_translation)
+        translations[target_lang] = translation
+
+    return translations
+
+async def save_translations(question_id, content):
+    translations = await translate_async(content)
+    question = Question.query.get(question_id)
+    
+    question.content_en = translations['en']
+    question.content_pl = translations['pl']
+    question.content_es = translations['es']
+    question.content_zh = translations['zh-CN']
+    question.content_hi = translations['hi']
+    question.content_ar = translations['ar']
+    question.content_pt = translations['pt']
+    question.content_bn = translations['bn']
+    question.content_ru = translations['ru']
+    question.content_ja = translations['ja']
+    question.content_pa = translations['pa']
+    db.session.commit()
 
 @questions_bp.route('/questions', methods=['GET'])
 def get_all_questions():
@@ -15,6 +60,17 @@ def get_all_questions():
         question_data = {
             'id': question.id,
             'content': question.content,
+            'content_en': question.content_en or '',
+            'content_pl': question.content_pl or '',
+            'content_es': question.content_es or '',
+            'content_zh': question.content_zh or '',
+            'content_hi': question.content_hi or '',
+            'content_ar': question.content_ar or '',
+            'content_pt': question.content_pt or '',
+            'content_bn': question.content_bn or '',
+            'content_ru': question.content_ru or '',
+            'content_ja': question.content_ja or '',
+            'content_pa': question.content_pa or '',
             'timestamp': question.timestamp,
             'user_id': question.user_id,
             'author': question.author.username,
@@ -23,6 +79,7 @@ def get_all_questions():
         output.append(question_data)
 
     return jsonify({'questions': output})
+
 
 @questions_bp.route('/questions', methods=['POST'])
 @login_required
@@ -37,6 +94,11 @@ def add_question():
     db.session.add(new_question)
     db.session.commit()
 
+    # Start a new event loop to call the asynchronous translation function
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(save_translations(new_question.id, content))
+
     return jsonify({'message': 'Question added successfully', 'question': {
         'id': new_question.id,
         'content': new_question.content,
@@ -45,6 +107,7 @@ def add_question():
         'author': new_question.author.username,
         'net_votes': new_question.get_votes()
     }}), 201
+
 
 @questions_bp.route('/questions/<int:question_id>/answers', methods=['GET'])
 def get_answers(question_id):
