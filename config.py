@@ -12,15 +12,6 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
-    
-    
-    print(MYSQL_USER)
-    print(MYSQL_PASSWORD)
-    print(MYSQL_DATABASE)
-    print(MYSQL_HOST)
-    print(SECRET_KEY)
-    print(MAIL_USERNAME)
-    print(MAIL_PASSWORD)
 
     #cookie settings
     REMEMBER_COOKIE_SAMESITE = 'None'
