@@ -72,6 +72,14 @@ class Question(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     answers = db.relationship('Answer', backref='question', lazy='dynamic')
 
+    @hybrid_property
+    def net_votes(self):
+        return self.upvotes - self.downvotes
+
+    @net_votes.expression
+    def net_votes(cls):
+        return cls.upvotes - cls.downvotes
+    
     def get_votes(self):
         upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
         downvotes = Vote.query.filter_by(question_id=self.id, vote_type='downvote').count()
