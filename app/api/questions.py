@@ -1,10 +1,18 @@
 from flask import Blueprint, request, jsonify
 from app.models import Question, Answer, User, Vote
-from app import db
+from app import db, login_manager
 from flask_login import login_required, current_user
 from datetime import datetime
 from translate import Translator
 import langid
+
+@login_manager.user_loader
+def load_user(id):
+    print("Loading user with ID qqq:", id)
+    user = User.query.get(int(id))
+    print("Loaded user qqq:", user)
+    return user
+
 
 questions_bp = Blueprint('questions', __name__)
 
