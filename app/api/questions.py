@@ -68,7 +68,9 @@ async def save_answer_translations(answer_id, content):
 
 @questions_bp.route('/questions', methods=['GET'])
 def get_all_questions():
-    questions = Question.query.order_by(Question.timestamp.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    questions = Question.query.order_by(Question.timestamp.desc()).paginate(page, per_page, error_out=False)
     output = []
 
     for question in questions:
@@ -101,7 +103,7 @@ def get_all_questions():
         }
         output.append(question_data)
 
-    return jsonify({'questions': output})
+    return jsonify({'questions': output, 'total_pages': questions.pages, 'current_page': questions.page})
 
 @questions_bp.route('/questions/<int:question_id>/answers', methods=['GET'])
 def get_answers(question_id):
