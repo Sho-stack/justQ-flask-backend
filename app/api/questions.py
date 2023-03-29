@@ -1,17 +1,10 @@
 from flask import Blueprint, request, jsonify
 from app.models import Question, Answer, User, Vote
-from app import db, login_manager
+from app import db
 from flask_login import login_required, current_user
 from datetime import datetime
 from translate import Translator
 import langid
-
-@login_manager.user_loader
-def load_user(id):
-    print("Loading user with ID qqq:", id)
-    user = User.query.get(int(id))
-    print("Loaded user qqq:", user)
-    return user
 
 
 questions_bp = Blueprint('questions', __name__)
@@ -80,12 +73,12 @@ def get_all_questions():
     per_page = request.args.get('per_page', 10, type=int)
     questions = Question.query.order_by(Question.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
     output = []
-    print('current user in questions.py /questions GET 1: ', current_user)
+
+    user = current_user  # get the current user explicitly
+    print('current user in questions.py /questions GET: ', user)
 
     for question in questions:
         user_vote = 0
-        print(question)
-        print('current user in questions.py /questions GET 2: ', current_user)
         if current_user.is_authenticated:
             vote = Vote.query.filter_by(user_id=current_user.id, question_id=question.id).first()
             print(vote)
