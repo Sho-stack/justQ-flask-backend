@@ -74,7 +74,7 @@ def get_all_questions():
     sort_by = request.args.get('sort_by', 'timestamp', type=str) 
 
     if sort_by == 'net_votes':
-        questions = Question.query.order_by(Question.net_votes.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        questions = Question.query.order_by(Question.net_votes().desc()).paginate(page=page, per_page=per_page, error_out=False)
     else:
         questions = Question.query.order_by(Question.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
