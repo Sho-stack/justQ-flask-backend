@@ -3,7 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
-
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import case
 
 
