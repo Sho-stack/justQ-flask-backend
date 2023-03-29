@@ -72,14 +72,18 @@ class Question(db.Model):
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     answers = db.relationship('Answer', backref='question', lazy='dynamic')
-
+   
     @hybrid_property
     def net_votes(self):
-        return self.get_votes
+        upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
+        downvotes = Vote.query.filter_by(question_id=self.id, vote_type='downvote').count()
+        return upvotes - downvotes
 
     @net_votes.expression
     def net_votes(cls):
-        return cls.get_votes
+        upvotes = db.select([db.func.count(Vote.id)]).where(db.and_(Vote.question_id == cls.id, Vote.vote_type == 'upvote'))
+        downvotes = db.select([db.func.count(Vote.id)]).where(db.and_(Vote.question_id == cls.id, Vote.vote_type == 'downvote'))
+        return upvotes - downvotes
     
     def get_votes(self):
         upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
