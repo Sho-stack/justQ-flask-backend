@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from datetime import datetime
 from translate import Translator
 import langid
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+
 
 
 questions_bp = Blueprint('questions', __name__)
