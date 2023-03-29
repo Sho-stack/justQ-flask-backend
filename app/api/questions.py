@@ -70,7 +70,7 @@ async def save_answer_translations(answer_id, content):
 def get_all_questions():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    questions = Question.query.order_by(Question.timestamp.desc()).paginate(page, per_page, error_out=False)
+    questions = Question.query.order_by(Question.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
     output = []
 
     for question in questions:
