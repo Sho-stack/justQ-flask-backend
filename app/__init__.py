@@ -7,9 +7,9 @@ from flask_mail import Mail
 from config import Config
 import subprocess
 from flask_sslify import SSLify
+from auth.py import login_manager
 
 db = SQLAlchemy()
-login_manager = LoginManager()
 migrate = Migrate()
 mail = Mail()
 
@@ -25,14 +25,6 @@ def create_app():
     })    
     db.init_app(app)
     login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(id):
-        print("Loading user with ID:", id)
-        user = User.query.get(int(id))
-        print("Loaded user:", user)
-        return user
-    
     migrate.init_app(app, db)
     mail.init_app(app)
     sslify = SSLify(app)

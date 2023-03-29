@@ -1,17 +1,24 @@
 from flask import Blueprint, request, jsonify, make_response, url_for, current_app
 from app.models import User
 from app import db, mail, login_manager
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, LoginManager
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 
 auth_bp = Blueprint('auth', __name__)
+login_manager = LoginManager()
+
 
 def generate_session_id(user_id):
     serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
     return serializer.dumps(user_id)
 
-
+@login_manager.user_loader
+def load_user(id):
+    print("Loading user with ID:", id)
+    user = User.query.get(int(id))
+    print("Loaded user:", user)
+    return user
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -64,7 +71,6 @@ def login():
 
 @auth_bp.route('/check_login', methods=['GET'])
 def check_login():
-    print(f'Current user in auth.py /checklogin GET: {current_user}')
     if current_user.is_authenticated:
         return jsonify({'user': current_user.to_dict()})
     return jsonify({'user': None})
