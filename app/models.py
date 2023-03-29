@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.sql.expression import case
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,9 +83,14 @@ class Question(db.Model):
 
     @net_votes.expression
     def net_votes(cls):
-        upvotes = db.select([db.func.count(Vote.id)]).where(db.and_(Vote.question_id == cls.id, Vote.vote_type == 'upvote'))
-        downvotes = db.select([db.func.count(Vote.id)]).where(db.and_(Vote.question_id == cls.id, Vote.vote_type == 'downvote'))
-        return upvotes - downvotes
+        vote_sum = db.func.sum(
+            case([
+                (Vote.vote_type == 'upvote', 1),
+                (Vote.vote_type == 'downvote', -1)
+            ], else_=0)
+        )
+
+        return db.select([vote_sum]).where(Vote.question_id == cls.id).label('net_votes')
     
     def get_votes(self):
         upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
