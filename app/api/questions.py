@@ -112,7 +112,9 @@ def get_answers(question_id):
     if not question:
         return jsonify({'error': 'Invalid question ID'}), 400
 
-    answers = question.answers.order_by(Answer.timestamp).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    answers = question.answers.order_by(Answer.timestamp).paginate(page=page, per_page=per_page, error_out=False)
     output = []
 
     for answer in answers:
@@ -138,7 +140,7 @@ def get_answers(question_id):
         }
         output.append(answer_data)
 
-    return jsonify({'answers': output})
+    return jsonify({'answers': output, 'total_pages': answers.pages, 'current_page': answers.page})
 
 @questions_bp.route('/questions', methods=['POST'])
 @login_required
