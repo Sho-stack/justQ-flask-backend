@@ -83,6 +83,8 @@ def get_all_questions():
                 elif vote.vote_type == 'downvote':
                     user_vote = -1
 
+        print(user_vote)
+        
         question_data = {
             'id': question.id,
             'content': question.content,
