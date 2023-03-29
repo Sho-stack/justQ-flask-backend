@@ -75,8 +75,10 @@ def get_all_questions():
 
     for question in questions:
         user_vote = 0
+        print(question)
         if current_user.is_authenticated:
             vote = Vote.query.filter_by(user_id=current_user.id, question_id=question.id).first()
+            print(vote)
             if vote:
                 if vote.vote_type == 'upvote':
                     user_vote = 1
@@ -84,7 +86,7 @@ def get_all_questions():
                     user_vote = -1
 
         print(user_vote)
-        
+
         question_data = {
             'id': question.id,
             'content': question.content,
