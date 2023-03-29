@@ -76,6 +76,7 @@ def get_all_questions():
     for question in questions:
         user_vote = 0
         print(question)
+        print('current user: ', current_user)
         if current_user.is_authenticated:
             vote = Vote.query.filter_by(user_id=current_user.id, question_id=question.id).first()
             print(vote)
