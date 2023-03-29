@@ -78,7 +78,10 @@ def get_all_questions():
         if current_user.is_authenticated:
             vote = Vote.query.filter_by(user_id=current_user.id, question_id=question.id).first()
             if vote:
-                user_vote = 1 if vote.vote_type == 'upvote' else -1
+                if vote.vote_type == 'upvote':
+                    user_vote = 1
+                elif vote.vote_type == 'downvote':
+                    user_vote = -1
 
         question_data = {
             'id': question.id,
@@ -122,7 +125,10 @@ def get_answers(question_id):
         if current_user.is_authenticated:
             vote = Vote.query.filter_by(user_id=current_user.id, answer_id=answer.id).first()
             if vote:
-                user_vote = 1 if vote.vote_type == 'upvote' else -1
+                if vote.vote_type == 'upvote':
+                    user_vote = 1
+                elif vote.vote_type == 'downvote':
+                    user_vote = -1
 
         answer_data = {
             'id': answer.id,
