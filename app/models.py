@@ -75,11 +75,11 @@ class Question(db.Model):
 
     @hybrid_property
     def net_votes(self):
-        return self.get_votes()
+        return self.get_votes
 
     @net_votes.expression
     def net_votes(cls):
-        return cls.get_votes()
+        return cls.get_votes
     
     def get_votes(self):
         upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
