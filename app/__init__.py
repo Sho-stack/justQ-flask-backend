@@ -7,9 +7,9 @@ from flask_mail import Mail
 from config import Config
 import subprocess
 from flask_sslify import SSLify
-from auth.py import login_manager
 
 db = SQLAlchemy()
+login_manager = LoginManager()
 migrate = Migrate()
 mail = Mail()
 

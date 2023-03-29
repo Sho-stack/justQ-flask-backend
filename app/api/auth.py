@@ -1,13 +1,11 @@
 from flask import Blueprint, request, jsonify, make_response, url_for, current_app
 from app.models import User
 from app import db, mail, login_manager
-from flask_login import login_user, logout_user, current_user, LoginManager
+from flask_login import login_user, logout_user, current_user
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 
 auth_bp = Blueprint('auth', __name__)
-login_manager = LoginManager()
-
 
 def generate_session_id(user_id):
     serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
