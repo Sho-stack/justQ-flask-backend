@@ -118,6 +118,12 @@ def get_answers(question_id):
     output = []
 
     for answer in answers:
+        user_vote = 0
+        if current_user.is_authenticated:
+            vote = Vote.query.filter_by(user_id=current_user.id, answer_id=answer.id).first()
+            if vote:
+                user_vote = 1 if vote.vote_type == 'upvote' else -1
+
         answer_data = {
             'id': answer.id,
             'content': answer.content,
@@ -136,11 +142,13 @@ def get_answers(question_id):
             'user_id': answer.user_id,
             'author': answer.author.username,
             'question_id': answer.question_id,
-            'net_votes': answer.get_votes()
+            'net_votes': answer.get_votes(),
+            'user_vote': user_vote  # Add this line
         }
         output.append(answer_data)
 
     return jsonify({'answers': output, 'total_pages': answers.pages, 'current_page': answers.page})
+
 
 @questions_bp.route('/questions', methods=['POST'])
 @login_required
