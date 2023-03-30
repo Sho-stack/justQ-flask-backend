@@ -5,6 +5,9 @@ from flask_login import login_required, current_user
 from datetime import datetime
 from translate import Translator
 import langid
+from sqlalchemy import case, desc
+from sqlalchemy.sql import func
+from sqlalchemy.sql.functions import coalesce
 
 
 
@@ -68,23 +71,6 @@ async def save_answer_translations(answer_id, content):
 
     db.session.commit()
 
-def calculate_points(question):
-    # 1 point for each upvote of the question
-    question_upvotes = Vote.query.filter_by(question_id=question.id, vote_type='upvote').count()
-
-    # 1 point for each answer for that question
-    answers_count = question.answers.count()
-
-    # 1 point if any answer has a positive ratio of upvotes to downvotes
-    bonus_point = 0
-    for answer in question.answers:
-        answer_upvotes = Vote.query.filter_by(answer_id=answer.id, vote_type='upvote').count()
-        answer_downvotes = Vote.query.filter_by(answer_id=answer.id, vote_type='downvote').count()
-        if answer_upvotes > answer_downvotes:
-            bonus_point = 1
-            break
-
-    return question_upvotes + answers_count + bonus_point
 
 
 @questions_bp.route('/questions', methods=['GET'])
@@ -94,9 +80,36 @@ def get_all_questions():
     sort_by = request.args.get('sort_by', 'timestamp', type=str) 
 
     if sort_by == 'net_votes':
-        questions = Question.query.all()
-        questions.sort(key=calculate_points, reverse=True)
-        questions = questions[(page-1)*per_page:page*per_page]
+        question_upvote_points = db.session.query(
+            Vote.question_id, func.count(Vote.id).label('upvote_points')
+        ).filter(Vote.vote_type == 'upvote').group_by(Vote.question_id).subquery()
+
+        answer_points = db.session.query(
+            Answer.question_id, func.count(Answer.id).label('answer_points')
+        ).group_by(Answer.question_id).subquery()
+
+        answer_vote_points = db.session.query(
+            Answer.question_id,
+            func.sum(
+                case([(Vote.vote_type == 'upvote', 1)], else_=0)
+                > case([(Vote.vote_type == 'downvote', 1)], else_=0)
+            ).label('answer_vote_points')
+        ).join(Vote, Vote.answer_id == Answer.id).group_by(Answer.question_id).subquery()
+
+        questions = (
+            Question.query
+            .outerjoin(question_upvote_points, question_upvote_points.c.question_id == Question.id)
+            .outerjoin(answer_points, answer_points.c.question_id == Question.id)
+            .outerjoin(answer_vote_points, answer_vote_points.c.question_id == Question.id)
+            .with_entities(
+                Question,
+                (coalesce(question_upvote_points.c.upvote_points, 0)
+                 + coalesce(answer_points.c.answer_points, 0)
+                 + coalesce(answer_vote_points.c.answer_vote_points, 0)).label('total_points')
+            )
+            .order_by(desc('total_points'))
+            .paginate(page=page, per_page=per_page, error_out=False)
+        )
     else:
         questions = Question.query.order_by(Question.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
