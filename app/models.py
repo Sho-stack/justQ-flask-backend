@@ -3,8 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.sql.expression import case
+
 
 
 class User(UserMixin, db.Model):
@@ -74,24 +73,6 @@ class Question(db.Model):
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     answers = db.relationship('Answer', backref='question', lazy='dynamic')
-
-    @hybrid_property
-    def net_votes(self):
-        upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
-        downvotes = Vote.query.filter_by(question_id=self.id, vote_type='downvote').count()
-        return upvotes - downvotes
-
-    @net_votes.expression
-    def net_votes(cls):
-        vote_sum = db.func.sum(
-            case(
-                (Vote.vote_type == 'upvote', 1),
-                (Vote.vote_type == 'downvote', -1),
-                else_=0
-            )
-        )
-
-        return db.select([vote_sum]).where(Vote.question_id == cls.id).label('net_votes')
     
     def get_votes(self):
         upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()

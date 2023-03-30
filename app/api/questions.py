@@ -68,6 +68,25 @@ async def save_answer_translations(answer_id, content):
 
     db.session.commit()
 
+def calculate_points(question):
+    # 1 point for each upvote of the question
+    question_upvotes = Vote.query.filter_by(question_id=question.id, vote_type='upvote').count()
+
+    # 1 point for each answer for that question
+    answers_count = question.answers.count()
+
+    # 1 point if any answer has a positive ratio of upvotes to downvotes
+    bonus_point = 0
+    for answer in question.answers:
+        answer_upvotes = Vote.query.filter_by(answer_id=answer.id, vote_type='upvote').count()
+        answer_downvotes = Vote.query.filter_by(answer_id=answer.id, vote_type='downvote').count()
+        if answer_upvotes > answer_downvotes:
+            bonus_point = 1
+            break
+
+    return question_upvotes + answers_count + bonus_point
+
+
 @questions_bp.route('/questions', methods=['GET'])
 def get_all_questions():
     page = request.args.get('page', 1, type=int)
@@ -75,7 +94,9 @@ def get_all_questions():
     sort_by = request.args.get('sort_by', 'timestamp', type=str) 
 
     if sort_by == 'net_votes':
-        questions = Question.query.order_by(Question.net_votes.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        questions = Question.query.all()
+        questions.sort(key=calculate_points, reverse=True)
+        questions = questions[(page-1)*per_page:page*per_page]
     else:
         questions = Question.query.order_by(Question.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
