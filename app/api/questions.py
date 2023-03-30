@@ -139,7 +139,19 @@ def get_answers(question_id):
 
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    answers = question.answers.order_by(Answer.timestamp).paginate(page=page, per_page=per_page, error_out=False)
+    sort_by = request.args.get('sort_by', 'timestamp', type=str)
+    order = request.args.get('order', 'desc', type=str)
+
+    if order not in ['asc', 'desc']:
+        return jsonify({'error': 'Invalid order value'}), 400
+
+    order_func = asc if order == 'asc' else desc
+
+    if sort_by == 'total_score':
+        answers = question.answers.order_by(order_func(Answer.total_score)).paginate(page=page, per_page=per_page, error_out=False)
+    else:
+        answers = question.answers.order_by(order_func(Answer.timestamp)).paginate(page=page, per_page=per_page, error_out=False)
+
     output = []
 
     for answer in answers:
@@ -151,6 +163,7 @@ def get_answers(question_id):
                     user_vote = 1
                 elif vote.vote_type == 'downvote':
                     user_vote = -1
+        num_answers = Answer.query.filter_by(question_id=question.id).count()
 
         answer_data = {
             'id': answer.id,
@@ -170,8 +183,10 @@ def get_answers(question_id):
             'user_id': answer.user_id,
             'author': answer.author.username,
             'question_id': answer.question_id,
-            'net_votes': answer.get_votes(),
-            'user_vote': user_vote  # Add this line
+            'net_votes': answer.total_score,
+            'user_vote': user_vote,
+            'num_answers': num_answers,
+
         }
         output.append(answer_data)
 
@@ -301,6 +316,11 @@ def update_vote():
         downvotes = Vote.query.filter_by(question_id=question_id, vote_type='downvote').count()
         answers = Answer.query.filter_by(question_id=question_id).count()
         obj.total_score = upvotes - downvotes + answers
+
+    if answer_id:
+        upvotes = Vote.query.filter_by(answer_id=answer_id, vote_type='upvote').count()
+        downvotes = Vote.query.filter_by(answer_id=answer_id, vote_type='downvote').count()
+        obj.total_score = upvotes - downvotes
 
     db.session.commit()
 
