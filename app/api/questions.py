@@ -121,7 +121,7 @@ def get_all_questions():
             'timestamp': question.timestamp,
             'user_id': question.user_id,
             'author': question.author.username,
-            'net_votes': question.get_votes(),
+            'net_votes': question.total_score,
             'user_vote': user_vote,
 
         }
