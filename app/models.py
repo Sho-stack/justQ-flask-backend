@@ -73,6 +73,9 @@ class Question(db.Model):
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     answers = db.relationship('Answer', backref='question', lazy='dynamic')
+
+    total_score = db.Column(db.Integer, default=0)
+
     
     def get_votes(self):
         upvotes = Vote.query.filter_by(question_id=self.id, vote_type='upvote').count()
@@ -97,6 +100,8 @@ class Answer(db.Model):
     timestamp = db.Column(db.DateTime, index=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'))
+
+    total_score = db.Column(db.Integer, default=0)
 
     def get_votes(self):
         upvotes = Vote.query.filter_by(answer_id=self.id, vote_type='upvote').count()

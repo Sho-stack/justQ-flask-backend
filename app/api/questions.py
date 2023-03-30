@@ -5,9 +5,6 @@ from flask_login import login_required, current_user
 from datetime import datetime
 from translate import Translator
 import langid
-from sqlalchemy import case, desc
-from sqlalchemy.sql import func
-from sqlalchemy.sql.functions import coalesce
 
 
 
@@ -71,53 +68,22 @@ async def save_answer_translations(answer_id, content):
 
     db.session.commit()
 
-
-
 @questions_bp.route('/questions', methods=['GET'])
 def get_all_questions():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    sort_by = request.args.get('sort_by', 'timestamp', type=str) 
+    sort_by = request.args.get('sort_by', 'timestamp', type=str)
+    order = request.args.get('order', 'desc', type=str)
 
-    if sort_by == 'net_votes':
-        question_upvote_points = db.session.query(
-            Vote.question_id, func.count(Vote.id).label('upvote_points')
-        ).filter(Vote.vote_type == 'upvote').group_by(Vote.question_id).subquery()
+    if order not in ['asc', 'desc']:
+        return jsonify({'error': 'Invalid order value'}), 400
 
-        answer_points = db.session.query(
-            Answer.question_id, func.count(Answer.id).label('answer_points')
-        ).group_by(Answer.question_id).subquery()
+    order_func = asc if order == 'asc' else desc
 
-        answer_vote_points = db.session.query(
-            Answer.question_id,
-            func.sum(
-                case(
-                    [
-                        (Vote.vote_type == 'upvote', 1),
-                        (Vote.vote_type == 'downvote', -1),
-                    ],
-                    else_=0
-                )
-            ).label('answer_vote_points')
-        ).join(Vote, Vote.answer_id == Answer.id).group_by(Answer.question_id).subquery()
-
-
-        questions = (
-            Question.query
-            .outerjoin(question_upvote_points, question_upvote_points.c.question_id == Question.id)
-            .outerjoin(answer_points, answer_points.c.question_id == Question.id)
-            .outerjoin(answer_vote_points, answer_vote_points.c.question_id == Question.id)
-            .with_entities(
-                Question,
-                (coalesce(question_upvote_points.c.upvote_points, 0)
-                 + coalesce(answer_points.c.answer_points, 0)
-                 + coalesce(answer_vote_points.c.answer_vote_points, 0)).label('total_points')
-            )
-            .order_by(desc('total_points'))
-            .paginate(page=page, per_page=per_page, error_out=False)
-        )
+    if sort_by == 'total_score':
+        questions = Question.query.order_by(order_func(Question.total_score)).paginate(page=page, per_page=per_page, error_out=False)
     else:
-        questions = Question.query.order_by(Question.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
+        questions = Question.query.order_by(order_func(Question.timestamp)).paginate(page=page, per_page=per_page, error_out=False)
 
     output = []
 
@@ -161,6 +127,7 @@ def get_all_questions():
         output.append(question_data)
 
     return jsonify({'questions': output, 'total_pages': questions.pages, 'current_page': questions.page})
+
 
 @questions_bp.route('/questions/<int:question_id>/answers', methods=['GET'])
 def get_answers(question_id):
@@ -314,20 +281,26 @@ def update_vote():
         if vote:
             db.session.delete(vote)
             db.session.commit()
-            return jsonify({'message': 'Vote removed successfully'}), 200
         else:
             return jsonify({'message': 'No vote to remove'}), 204
+    else:
+        if not vote:
+            if question_id:
+                vote = Vote(user_id=current_user.id, question_id=question_id, timestamp=datetime.utcnow())
+            else:
+                vote = Vote(user_id=current_user.id, answer_id=answer_id, timestamp=datetime.utcnow())
 
-    if not vote:
-        if question_id:
-            vote = Vote(user_id=current_user.id, question_id=question_id, timestamp=datetime.utcnow())
-        else:
-            vote = Vote(user_id=current_user.id, answer_id=answer_id, timestamp=datetime.utcnow())
+            db.session.add(vote)
 
-        db.session.add(vote)
+        vote.vote_type = 'upvote' if vote_value == 1 else 'downvote'
+        vote.timestamp = datetime.utcnow()
 
-    vote.vote_type = 'upvote' if vote_value == 1 else 'downvote'
-    vote.timestamp = datetime.utcnow()
+    if question_id:
+        upvotes = Vote.query.filter_by(question_id=question_id, vote_type='upvote').count()
+        downvotes = Vote.query.filter_by(question_id=question_id, vote_type='downvote').count()
+        answers = Answer.query.filter_by(question_id=question_id).count()
+        obj.total_score = upvotes - downvotes + answers
+
     db.session.commit()
 
     return jsonify({'message': 'Vote updated successfully'}), 200
