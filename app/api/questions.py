@@ -92,7 +92,7 @@ def get_all_questions():
             Answer.question_id,
             func.sum(
                 case([(Vote.vote_type == 'upvote', 1)], else_=0)
-                > case([(Vote.vote_type == 'downvote', 1)], else_=0)
+                - case([(Vote.vote_type == 'downvote', 1)], else_=0)
             ).label('answer_vote_points')
         ).join(Vote, Vote.answer_id == Answer.id).group_by(Answer.question_id).subquery()
 
