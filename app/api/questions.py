@@ -89,20 +89,17 @@ def get_all_questions():
     output = []
 
     user = current_user  # get the current user explicitly
-    print('current user in questions.py /questions GET: ', user)
 
     for question in questions:
         user_vote = 0
         if current_user.is_authenticated:
             vote = Vote.query.filter_by(user_id=current_user.id, question_id=question.id).first()
-            print(vote)
             if vote:
                 if vote.vote_type == 'upvote':
                     user_vote = 1
                 elif vote.vote_type == 'downvote':
                     user_vote = -1
-
-        print(user_vote)
+        num_answers = Answer.query.filter_by(question_id=question.id).count()
 
         question_data = {
             'id': question.id,
@@ -123,6 +120,8 @@ def get_all_questions():
             'author': question.author.username,
             'net_votes': question.total_score,
             'user_vote': user_vote,
+            'num_answers': num_answers
+
 
         }
         output.append(question_data)
@@ -163,7 +162,6 @@ def get_answers(question_id):
                     user_vote = 1
                 elif vote.vote_type == 'downvote':
                     user_vote = -1
-        num_answers = Answer.query.filter_by(question_id=question.id).count()
 
         answer_data = {
             'id': answer.id,
@@ -185,7 +183,6 @@ def get_answers(question_id):
             'question_id': answer.question_id,
             'net_votes': answer.total_score,
             'user_vote': user_vote,
-            'num_answers': num_answers,
 
         }
         output.append(answer_data)
