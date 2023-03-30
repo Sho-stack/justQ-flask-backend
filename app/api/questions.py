@@ -290,23 +290,19 @@ def update_vote():
 
         vote = Vote.query.filter_by(user_id=current_user.id, answer_id=answer_id).first()
 
-    if vote_value == 0:
-        if vote:
-            db.session.delete(vote)
-            db.session.commit()
+    if vote:
+        if vote_value == 0:
+            vote.vote_type = None
         else:
-            return jsonify({'message': 'No vote to remove'}), 204
-    else:
-        if not vote:
-            if question_id:
-                vote = Vote(user_id=current_user.id, question_id=question_id, timestamp=datetime.utcnow())
-            else:
-                vote = Vote(user_id=current_user.id, answer_id=answer_id, timestamp=datetime.utcnow())
-
-            db.session.add(vote)
-
-        vote.vote_type = 'upvote' if vote_value == 1 else 'downvote'
+            vote.vote_type = 'upvote' if vote_value == 1 else 'downvote'
         vote.timestamp = datetime.utcnow()
+    else:
+        if question_id:
+            vote = Vote(user_id=current_user.id, question_id=question_id, vote_type='upvote' if vote_value == 1 else 'downvote', timestamp=datetime.utcnow())
+        else:
+            vote = Vote(user_id=current_user.id, answer_id=answer_id, vote_type='upvote' if vote_value == 1 else 'downvote', timestamp=datetime.utcnow())
+
+        db.session.add(vote)
 
     if question_id:
         upvotes = Vote.query.filter_by(question_id=question_id, vote_type='upvote').count()
