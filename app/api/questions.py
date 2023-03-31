@@ -129,6 +129,9 @@ def get_all_questions():
     return jsonify({'questions': output, 'total_pages': questions.pages, 'current_page': questions.page})
 
 
+
+
+
 @questions_bp.route('/questions/<int:question_id>/answers', methods=['GET'])
 def get_answers(question_id):
     question = Question.query.get(question_id)
@@ -138,63 +141,61 @@ def get_answers(question_id):
 
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
+    sort_by = request.args.get('sort_by', 'timestamp', type=str)
+    order = request.args.get('order', 'desc', type=str)
 
-    answers_query = question.answers.order_by(desc(Answer.total_score))
+    if order not in ['asc', 'desc']:
+        return jsonify({'error': 'Invalid order value'}), 400
 
-    if current_user.is_authenticated:
-        user_answer = answers_query.filter_by(user_id=current_user.id).first()
-        answers_query = answers_query.filter(Answer.user_id != current_user.id)
+    order_func = asc if order == 'asc' else desc
 
-    answers = answers_query.paginate(page=page, per_page=per_page, error_out=False)
+    if sort_by == 'total_score':
+        answers = question.answers.order_by(order_func(Answer.total_score)).paginate(page=page, per_page=per_page, error_out=False)
+    else:
+        answers = question.answers.order_by(order_func(Answer.timestamp)).paginate(page=page, per_page=per_page, error_out=False)
 
     output = []
 
-    if current_user.is_authenticated and user_answer and page == 1:
-        output.append(create_answer_data(user_answer))
-
     for answer in answers:
-        output.append(create_answer_data(answer))
+        user_vote = 0
+        if current_user.is_authenticated:
+            vote = Vote.query.filter_by(user_id=current_user.id, answer_id=answer.id).first()
+            if vote:
+                if vote.vote_type == 'upvote':
+                    user_vote = 1
+                elif vote.vote_type == 'downvote':
+                    user_vote = -1
+
+        answer_data = {
+            'id': answer.id,
+            'content': answer.content,
+            'content_en': answer.content_en or '',
+            'content_pl': answer.content_pl or '',
+            'content_es': answer.content_es or '',
+            'content_zh': answer.content_zh or '',
+            'content_hi': answer.content_hi or '',
+            'content_ar': answer.content_ar or '',
+            'content_pt': answer.content_pt or '',
+            'content_bn': answer.content_bn or '',
+            'content_ru': answer.content_ru or '',
+            'content_ja': answer.content_ja or '',
+            'content_pa': answer.content_pa or '',
+            'timestamp': answer.timestamp,
+            'user_id': answer.user_id,
+            'author': answer.author.username,
+            'question_id': answer.question_id,
+            'net_votes': answer.total_score,
+            'user_vote': user_vote,
+
+        }
+        output.append(answer_data)
 
     return jsonify({'answers': output, 'total_pages': answers.pages, 'current_page': answers.page})
-
-def create_answer_data(answer):
-    user_vote = 0
-    if current_user.is_authenticated:
-        vote = Vote.query.filter_by(user_id=current_user.id, answer_id=answer.id).first()
-        if vote:
-            if vote.vote_type == 'upvote':
-                user_vote = 1
-            elif vote.vote_type == 'downvote':
-                user_vote = -1
-
-    answer_data = {
-        'id': answer.id,
-        'content': answer.content,
-        'content_en': answer.content_en or '',
-        'content_pl': answer.content_pl or '',
-        'content_es': answer.content_es or '',
-        'content_zh': answer.content_zh or '',
-        'content_hi': answer.content_hi or '',
-        'content_ar': answer.content_ar or '',
-        'content_pt': answer.content_pt or '',
-        'content_bn': answer.content_bn or '',
-        'content_ru': answer.content_ru or '',
-        'content_ja': answer.content_ja or '',
-        'content_pa': answer.content_pa or '',
-        'timestamp': answer.timestamp,
-        'user_id': answer.user_id,
-        'author': answer.author.username,
-        'question_id': answer.question_id,
-        'net_votes': answer.total_score,
-        'user_vote': user_vote,
-    }
-    return answer_data
-
 
 
 @questions_bp.route('/questions', methods=['POST'])
 @login_required
-def add_question():
+async def add_question():
     data = request.get_json()
     content = data.get('content')
 
@@ -206,7 +207,7 @@ def add_question():
     db.session.commit()
 
     # Start a new event loop to call the asynchronous translation function
-    save_question_translations(new_question.id, content)
+    await save_question_translations(new_question.id, content)
 
     return jsonify({'message': 'Question added successfully', 'question': {
         'id': new_question.id,
@@ -221,7 +222,7 @@ def add_question():
 
 @questions_bp.route('/answers', methods=['POST'])
 @login_required
-def add_answer():
+async def add_answer():
     data = request.get_json()
     content = data.get('content')
     question_id = data.get('question_id')
@@ -238,7 +239,7 @@ def add_answer():
     db.session.commit()
 
     # Start a new event loop to call the asynchronous translation function
-    save_answer_translations(new_answer.id, content)
+    await save_answer_translations(new_answer.id, content)
 
     return jsonify({'message': 'Answer added successfully', 'answer': {
         'id': new_answer.id,
